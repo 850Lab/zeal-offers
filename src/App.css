@@ -986,7 +986,7 @@ textarea:focus-visible {
   bottom: 0;
   display: grid;
   gap: 0.6rem;
-  grid-template-columns: 1fr 0.8fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   left: 0;
   padding: 0.7rem;
   position: fixed;
@@ -1010,6 +1010,11 @@ textarea:focus-visible {
 
 .sticky-mobile-cta a:first-child {
   background: var(--zeal-blue);
+  color: var(--zeal-white);
+}
+
+.sticky-mobile-cta a:nth-child(2) {
+  background: var(--zeal-green);
   color: var(--zeal-white);
 }
 

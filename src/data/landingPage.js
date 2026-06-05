@@ -2,6 +2,7 @@ export const businessConfig = {
   companyName: 'Zeal Power Washing LLC',
   displayPhone: '409-276-6056',
   phoneHref: 'tel:+14092766056',
+  textHref: 'sms:+14092766056',
   logoSrc: '/zeal-logo.png',
   videoSrc: '',
   videoPosterSrc: '',
@@ -9,7 +10,8 @@ export const businessConfig = {
 
 export const formSettings = {
   webhookUrl: '',
-  leadSource: 'direct-mail-qr',
+  leadSource: 'direct_mail_qr',
+  landingPage: 'launch_offer',
 }
 
 export const reviewConfig = {

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import {
   beforeAfterServices,
@@ -11,6 +11,12 @@ import {
   teamMembers,
   trustItems,
 } from './data/landingPage'
+import {
+  captureAttributionParams,
+  initAnalytics,
+  trackEvent,
+  trackLandingView,
+} from './utils/analytics'
 
 function Logo() {
   return (
@@ -173,6 +179,7 @@ function HeroSection() {
           className="nav-call"
           href={businessConfig.phoneHref}
           id="cta-header-call-text"
+          onClick={() => trackEvent('click_call_button', { cta_location: 'header' })}
         >
           Call/Text {businessConfig.displayPhone}
         </a>
@@ -187,11 +194,29 @@ function HeroSection() {
           <HeroVideo />
 
           <div className="hero-actions">
-            <a className="button button-primary" href="#quote" id="cta-hero-free-quote">
+            <a
+              className="button button-primary"
+              href="#quote"
+              id="cta-hero-free-quote"
+              onClick={() => trackEvent('click_quote_button', { cta_location: 'hero' })}
+            >
               Get My Free Quote
             </a>
-            <a className="button button-secondary" href={businessConfig.phoneHref} id="cta-hero-call-text">
-              Call or Text {businessConfig.displayPhone}
+            <a
+              className="button button-secondary"
+              href={businessConfig.phoneHref}
+              id="cta-hero-call"
+              onClick={() => trackEvent('click_call_button', { cta_location: 'hero' })}
+            >
+              Call {businessConfig.displayPhone}
+            </a>
+            <a
+              className="button button-secondary"
+              href={businessConfig.textHref}
+              id="cta-hero-text"
+              onClick={() => trackEvent('click_text_button', { cta_location: 'hero' })}
+            >
+              Text {businessConfig.displayPhone}
             </a>
           </div>
         </div>
@@ -214,7 +239,17 @@ function OfferCard({ offer }) {
           <li key={option}>{option}</li>
         ))}
       </ul>
-      <a className="button offer-button" href="#quote" id={`cta-offer-${offer.id}`}>
+      <a
+        className="button offer-button"
+        href="#quote"
+        id={`cta-offer-${offer.id}`}
+        onClick={() =>
+          trackEvent(`click_offer_${offer.id}`, {
+            offer_amount: offer.price,
+            offer_title: offer.title,
+          })
+        }
+      >
         Choose This Package
       </a>
     </article>
@@ -506,9 +541,17 @@ function QuoteFormSection() {
 
   function handleSubmit(event) {
     event.preventDefault()
+    const formData = new FormData(event.currentTarget)
+    const serviceSelected = formData.get('serviceNeeded') || 'not_selected'
 
-    // Add form webhook, CRM, Google Analytics, Facebook Pixel, and QR campaign
-    // conversion tracking here. formSettings.webhookUrl is ready for later use.
+    trackEvent('submit_quote_form', {
+      service_selected: serviceSelected,
+      lead_source: formSettings.leadSource,
+      landing_page: formSettings.landingPage,
+    })
+
+    // Add form webhook, CRM, Meta Pixel, and Google Tag Manager conversion
+    // tracking here. formSettings.webhookUrl is ready for later use.
     setIsSubmitted(true)
   }
 
@@ -524,12 +567,18 @@ function QuoteFormSection() {
           </p>
           <div className="quote-callout">
             Prefer fast contact? Call or text{' '}
-            <a href={businessConfig.phoneHref}>{businessConfig.displayPhone}</a>.
+            <a
+              href={businessConfig.phoneHref}
+              onClick={() => trackEvent('click_call_button', { cta_location: 'quote_callout' })}
+            >
+              {businessConfig.displayPhone}
+            </a>.
           </div>
         </div>
 
         <form className="quote-form" onSubmit={handleSubmit} data-form-destination={formSettings.webhookUrl}>
-          <input type="hidden" name="source" value={formSettings.leadSource} />
+          <input type="hidden" name="lead_source" value={formSettings.leadSource} />
+          <input type="hidden" name="landing_page" value={formSettings.landingPage} />
           <label>
             Name
             <input name="name" type="text" autoComplete="name" required />
@@ -582,10 +631,25 @@ function QuoteFormSection() {
 function StickyMobileCta() {
   return (
     <div className="sticky-mobile-cta" aria-label="Quick contact actions">
-      <a href={businessConfig.phoneHref} id="cta-sticky-call-text">
-        Call/Text {businessConfig.displayPhone}
+      <a
+        href={businessConfig.phoneHref}
+        id="cta-sticky-call"
+        onClick={() => trackEvent('click_call_button', { cta_location: 'sticky_mobile' })}
+      >
+        Call
       </a>
-      <a href="#quote" id="cta-sticky-get-quote">
+      <a
+        href={businessConfig.textHref}
+        id="cta-sticky-text"
+        onClick={() => trackEvent('click_text_button', { cta_location: 'sticky_mobile' })}
+      >
+        Text
+      </a>
+      <a
+        href="#quote"
+        id="cta-sticky-get-quote"
+        onClick={() => trackEvent('click_quote_button', { cta_location: 'sticky_mobile' })}
+      >
         Get Quote
       </a>
     </div>
@@ -593,9 +657,15 @@ function StickyMobileCta() {
 }
 
 function App() {
+  useEffect(() => {
+    captureAttributionParams()
+    initAnalytics()
+    trackLandingView()
+  }, [])
+
   return (
     <>
-      {/* Add QR source parsing, Google Analytics, and Facebook Pixel bootstraps here or in main.jsx. */}
+      {/* Add Meta Pixel or Google Tag Manager event mirroring here later if needed. */}
       <HeroSection />
       <main>
         <OffersSection />
