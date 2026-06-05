@@ -7,6 +7,7 @@ import {
   formSettings,
   heroTrustIndicators,
   offerPackages,
+  propertyDetailOptions,
   reviewConfig,
   teamMembers,
   trustItems,
@@ -17,6 +18,17 @@ import {
   trackEvent,
   trackLandingView,
 } from './utils/analytics'
+import { setupAddressAutocomplete } from './utils/googlePlaces'
+
+function getMinimumPreferredDateTime() {
+  const date = new Date()
+  date.setHours(date.getHours() + 2)
+  date.setMinutes(Math.ceil(date.getMinutes() / 15) * 15, 0, 0)
+
+  const timezoneOffset = date.getTimezoneOffset() * 60000
+
+  return new Date(date.getTime() - timezoneOffset).toISOString().slice(0, 16)
+}
 
 function Logo() {
   return (
@@ -537,15 +549,48 @@ function ReviewsSection() {
 }
 
 function QuoteFormSection() {
+  const addressInputRef = useRef(null)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [selectedAddress, setSelectedAddress] = useState({
+    formattedAddress: '',
+    placeId: '',
+  })
+
+  useEffect(() => {
+    let cleanupAutocomplete
+    let isMounted = true
+
+    setupAddressAutocomplete(addressInputRef.current, (address) => {
+      if (!isMounted) {
+        return
+      }
+
+      setSelectedAddress({
+        formattedAddress: address.formattedAddress,
+        placeId: address.placeId,
+      })
+    }).then((cleanup) => {
+      cleanupAutocomplete = cleanup
+    })
+
+    return () => {
+      isMounted = false
+      cleanupAutocomplete?.()
+    }
+  }, [])
 
   function handleSubmit(event) {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
     const serviceSelected = formData.get('serviceNeeded') || 'not_selected'
+    const propertyDetails = formData.getAll('propertyDetails')
+    const preferredDateTime = formData.get('preferredDateTime') || 'not_selected'
 
     trackEvent('submit_quote_form', {
       service_selected: serviceSelected,
+      preferred_datetime: preferredDateTime,
+      property_details: propertyDetails.join(', ') || 'none_selected',
+      address_autocomplete_used: selectedAddress.placeId ? 'yes' : 'no',
       lead_source: formSettings.leadSource,
       landing_page: formSettings.landingPage,
     })
@@ -579,6 +624,8 @@ function QuoteFormSection() {
         <form className="quote-form" onSubmit={handleSubmit} data-form-destination={formSettings.webhookUrl}>
           <input type="hidden" name="lead_source" value={formSettings.leadSource} />
           <input type="hidden" name="landing_page" value={formSettings.landingPage} />
+          <input type="hidden" name="selected_formatted_address" value={selectedAddress.formattedAddress} />
+          <input type="hidden" name="selected_address_place_id" value={selectedAddress.placeId} />
           <label>
             Name
             <input name="name" type="text" autoComplete="name" required />
@@ -589,7 +636,19 @@ function QuoteFormSection() {
           </label>
           <label>
             Address
-            <input name="address" type="text" autoComplete="street-address" required />
+            <input
+              ref={addressInputRef}
+              name="address"
+              type="text"
+              autoComplete="street-address"
+              placeholder="Start typing your home address"
+              onChange={() => {
+                if (selectedAddress.placeId) {
+                  setSelectedAddress({ formattedAddress: '', placeId: '' })
+                }
+              }}
+              required
+            />
           </label>
           <label>
             Service Needed
@@ -606,12 +665,28 @@ function QuoteFormSection() {
             </select>
           </label>
           <label>
-            Preferred day/time
-            <input name="preferredTime" type="text" placeholder="Example: Saturday morning" />
+            Preferred date and time
+            <input name="preferredDateTime" type="datetime-local" min={getMinimumPreferredDateTime()} required />
           </label>
+          <fieldset className="form-options-group">
+            <legend>Property details</legend>
+            <p>Select anything that helps us quote faster.</p>
+            <div className="form-checkbox-grid">
+              {propertyDetailOptions.map((option) => (
+                <label className="checkbox-card" key={option}>
+                  <input type="checkbox" name="propertyDetails" value={option} />
+                  <span>{option}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
           <label>
-            Notes
-            <textarea name="notes" rows="4" placeholder="Driveway size, roof streaks, gate code, etc." />
+            Anything else we should know?
+            <textarea
+              name="additionalDetails"
+              rows="3"
+              placeholder="Example: gate code, best place to park, problem spots, or best contact window."
+            />
           </label>
           <button className="button button-primary form-button" type="submit" id="cta-form-request-quote">
             Request My Quote

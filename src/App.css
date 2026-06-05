@@ -949,6 +949,64 @@ textarea:focus-visible {
   resize: vertical;
 }
 
+.form-options-group {
+  border: 0;
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0;
+}
+
+.form-options-group legend {
+  color: var(--zeal-black);
+  font-size: 0.9rem;
+  font-weight: 950;
+  padding: 0;
+  text-transform: uppercase;
+}
+
+.form-options-group p {
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 750;
+  margin-top: -0.35rem;
+}
+
+.form-checkbox-grid {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.checkbox-card {
+  align-items: center;
+  background: #f8fbff;
+  border: 2px solid rgba(8, 8, 8, 0.12);
+  border-radius: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  gap: 0.65rem;
+  min-height: 3rem;
+  padding: 0.7rem 0.8rem;
+  text-transform: none;
+}
+
+.checkbox-card:has(input:checked) {
+  background: rgba(255, 213, 31, 0.18);
+  border-color: var(--zeal-blue);
+}
+
+.checkbox-card input {
+  accent-color: var(--zeal-blue);
+  min-height: auto;
+  width: auto;
+}
+
+.checkbox-card span {
+  color: var(--zeal-black);
+  font-size: 0.9rem;
+  font-weight: 850;
+}
+
 .form-button {
   margin-top: 0.35rem;
   width: 100%;
@@ -1033,6 +1091,10 @@ textarea:focus-visible {
   .before-after-grid,
   .trust-grid,
   .reviews-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .form-checkbox-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

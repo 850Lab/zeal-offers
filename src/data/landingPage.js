@@ -14,6 +14,17 @@ export const formSettings = {
   landingPage: 'launch_offer',
 }
 
+export const propertyDetailOptions = [
+  'Heavy algae or green buildup',
+  'Black roof streaks',
+  'Oil, rust, or tough stains',
+  'Gate code or gated entry',
+  'Pets on property',
+  'Limited water access',
+  'Weekend appointment preferred',
+  'Okay to text photos and updates',
+]
+
 export const reviewConfig = {
   googleReviewsUrl:
     'https://www.google.com/search?sca_esv=b0606a0ae3ff7c6b&authuser=2&sxsrf=ANbL-n6xFxuWn1xaNFV3BMB1lTnbPZFeyg:1780684188926&si=AL3DRZEsmMGCryMMFSHJ3StBhOdZ2-6yYkXd_doETEE1OR-qOaz64QupisK2rBPPg_c40JsOyZO0q-VbXq1KZoa7MYemiDp8O5eDxxmpyml4Jm41iWIc5fxB_-jpUP3_4AaWw729cinCJSJwd8zmqzc2rdq8h_vayg%3D%3D&q=Zeal+Power+Washing+Reviews&sa=X&ved=2ahUKEwj826bE3fCUAxWsnCYFHXBCNpYQ0bkNegQIMRAF&biw=1272&bih=588&dpr=1.5',
