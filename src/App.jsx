@@ -551,6 +551,7 @@ function ReviewsSection() {
 function QuoteFormSection() {
   const addressInputRef = useRef(null)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [addressAutocompleteStatus, setAddressAutocompleteStatus] = useState('loading')
   const [selectedAddress, setSelectedAddress] = useState({
     formattedAddress: '',
     placeId: '',
@@ -569,7 +570,7 @@ function QuoteFormSection() {
         formattedAddress: address.formattedAddress,
         placeId: address.placeId,
       })
-    }).then((cleanup) => {
+    }, setAddressAutocompleteStatus).then((cleanup) => {
       cleanupAutocomplete = cleanup
     })
 
@@ -649,6 +650,14 @@ function QuoteFormSection() {
               }}
               required
             />
+            <small className={`form-helper form-helper-${addressAutocompleteStatus}`}>
+              {addressAutocompleteStatus === 'ready' && 'Start typing, then choose your address from the list.'}
+              {addressAutocompleteStatus === 'loading' && 'Loading address suggestions...'}
+              {addressAutocompleteStatus === 'missing_key' &&
+                'Address suggestions are not connected yet. You can still type your address.'}
+              {addressAutocompleteStatus === 'unavailable' &&
+                'Address suggestions are unavailable right now. You can still type your address.'}
+            </small>
           </label>
           <label>
             Service Needed

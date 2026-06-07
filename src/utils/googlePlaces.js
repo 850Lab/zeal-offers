@@ -42,7 +42,7 @@ function loadGooglePlacesScript() {
     script.async = true
     script.defer = true
     script.dataset.googlePlaces = 'true'
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places&loading=async`
     script.addEventListener('load', () => resolve(browserWindow.google ?? null), { once: true })
     script.addEventListener('error', () => {
       if (isDevelopment()) {
@@ -58,32 +58,48 @@ function loadGooglePlacesScript() {
   return googlePlacesPromise
 }
 
-export async function setupAddressAutocomplete(inputElement, onAddressSelect) {
+export async function setupAddressAutocomplete(inputElement, onAddressSelect, onStatusChange) {
   if (!inputElement) {
+    onStatusChange?.('unavailable')
     return undefined
   }
+
+  onStatusChange?.(GOOGLE_MAPS_API_KEY ? 'loading' : 'missing_key')
 
   const google = await loadGooglePlacesScript()
 
   if (!google?.maps?.places) {
+    onStatusChange?.(GOOGLE_MAPS_API_KEY ? 'unavailable' : 'missing_key')
     return undefined
   }
 
-  const autocomplete = new google.maps.places.Autocomplete(inputElement, {
-    componentRestrictions: { country: 'us' },
-    fields: ['formatted_address', 'name', 'place_id'],
-    types: ['address'],
-  })
-
-  const listener = autocomplete.addListener('place_changed', () => {
-    const place = autocomplete.getPlace()
-
-    onAddressSelect({
-      formattedAddress: place.formatted_address || inputElement.value,
-      name: place.name || '',
-      placeId: place.place_id || '',
+  try {
+    const autocomplete = new google.maps.places.Autocomplete(inputElement, {
+      componentRestrictions: { country: 'us' },
+      fields: ['formatted_address', 'name', 'place_id'],
+      types: ['address'],
     })
-  })
 
-  return () => listener.remove()
+    const listener = autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace()
+
+      onAddressSelect({
+        formattedAddress: place.formatted_address || inputElement.value,
+        name: place.name || '',
+        placeId: place.place_id || '',
+      })
+    })
+
+    onStatusChange?.('ready')
+
+    return () => listener.remove()
+  } catch (error) {
+    if (isDevelopment()) {
+      console.warn('[places] Google Places autocomplete failed to initialize.', error)
+    }
+
+    onStatusChange?.('unavailable')
+
+    return undefined
+  }
 }

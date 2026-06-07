@@ -48,3 +48,9 @@ VITE_GOOGLE_MAPS_API_KEY=your_google_maps_browser_key
 ```
 
 If the key is missing or Places is unavailable, the address field still works as a normal address input.
+
+If suggestions do not appear on the live site, confirm:
+
+- The Vercel project was redeployed after adding `VITE_GOOGLE_MAPS_API_KEY`.
+- The Google Cloud key has **Maps JavaScript API** and **Places API** enabled.
+- Any HTTP referrer restrictions include the production domain and Vercel preview domains.
